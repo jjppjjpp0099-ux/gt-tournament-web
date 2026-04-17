@@ -320,12 +320,13 @@ window.toggleVerify = async (uid, currentStatus) => {
 function initDeposits() {
     onSnapshot(query(collection(db, "deposits"), where("status", "==", "pending"), orderBy("createdAt", "desc")), snap => {
         const list = document.getElementById('admin-dep-list');
+        if (!list) return;
         list.innerHTML = '';
         snap.forEach(docSnap => {
             const d = docSnap.data();
             const id = docSnap.id;
             list.innerHTML += `
-                            <tr class="hover:bg-slate-800/50">
+                <tr class="hover:bg-slate-800/50">
                     <td class="p-4 text-white">${d.username || 'User'}</td>
                     <td class="p-4 font-bold text-green-400">₹${d.amount}</td>
                     <td class="p-4 font-mono text-xs">${d.utr}</td>
@@ -338,12 +339,10 @@ function initDeposits() {
                     </td>
                 </tr>
             `;
-
-
-            `;
         });
     });
 }
+
 
 window.handleDeposit = async (depId, uid, amount, action) => {
     try {
