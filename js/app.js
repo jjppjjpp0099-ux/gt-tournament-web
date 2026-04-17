@@ -376,8 +376,13 @@ function initTransactions(uid) {
                 else if(tx.type === 'join') { icon = 'gamepad'; color = 'text-red-400'; sign = '-'; text = `Joined ${tx.title||'Match'}`; joinedCount++; }
 
                 let statusHtml = '';
-                if(tx.status === 'pending') statusHtml = '<span class="text-[10px] bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded ml-2 border border-orange-500/30">Pending</span>';
-                else if(tx.status === 'rejected') statusHtml = '<span class="text-[10px] bg-red-500/20 text-red-400 px-2 py-0.5 rounded ml-2 border border-red-500/30">Rejected</span>';
+                if(tx.status === 'pending') {
+                    statusHtml = '<span class="text-[10px] bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded ml-2 border border-orange-500/30">Pending</span>';
+                } else if(tx.status === 'rejected') {
+                    statusHtml = '<span class="text-[10px] bg-red-500/20 text-red-400 px-2 py-0.5 rounded ml-2 border border-red-500/30">Rejected</span>';
+                } else {
+                    statusHtml = '<span class="text-[10px] bg-green-500/20 text-green-400 px-2 py-0.5 rounded ml-2 border border-green-500/30">Success</span>';
+                }
 
                 list.innerHTML += `
                     <div class="flex justify-between items-center p-3 bg-slate-900 rounded-lg border border-slate-700/50">
