@@ -3,12 +3,31 @@ import {
     doc, onSnapshot, collection, query, orderBy, addDoc, serverTimestamp, 
     runTransaction, limit, where, getDocs 
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+//import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
 let currentUserData = null;
 let currentSettings = null;
 let unsubUser, unsubSettings, unsubTourneys, unsubChat, unsubTx, unsubBroadcast;
 let selectedTourneyId = null;
+
+async function uploadToImgBB(file) {
+    const apiKey = "c8648d9ad9e45f40986796142cd50ca1"; 
+    const formData = new FormData();
+    formData.append("image", file);
+    try {
+        const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+            method: "POST",
+            body: formData
+        });
+        const result = await response.json();
+        return result.data.url;
+    } catch (error) {
+        console.error("ImgBB Error:", error);
+        return null;
+    }
+}
+
 
 // UI State Management
 window.switchTab = (tabId) => {
@@ -399,10 +418,14 @@ document.getElementById('deposit-form').addEventListener('submit', async (e) => 
     btn.innerHTML = `<div class="spinner mr-2"></div> Uploading...`;
 
     try {
+            // ImgBB par upload
+        const url = await uploadToImgBB(file);
+        if(!url) throw new Error("Image upload failed!");
+        
         // Upload image
-        const storageRef = ref(storage, `deposits/${auth.currentUser.uid}_${Date.now()}`);
-        await uploadBytes(storageRef, file);
-        const url = await getDownloadURL(storageRef);
+      //  const storageRef = ref(storage, `deposits/${auth.currentUser.uid}_${Date.now()}`);
+      //  await uploadBytes(storageRef, file);
+      //  const url = await getDownloadURL(storageRef);
 
         // Save doc
         await addDoc(collection(db, "deposits"), {
