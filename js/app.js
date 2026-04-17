@@ -430,7 +430,7 @@ document.getElementById('deposit-form').addEventListener('submit', async (e) => 
         // Save doc
         await addDoc(collection(db, "deposits"), {
             userId: auth.currentUser.uid,
-            username: currentUserData.username,
+            username: currentUserData ? currentUserData.username : "User",
             amount: amount,
             utr: utr,
             screenshot: url,
