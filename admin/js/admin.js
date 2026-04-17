@@ -8,6 +8,23 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
+async function uploadToImgBB(file) {
+    const apiKey = "c8648d9ad9e45f40986796142cd50ca1"; 
+    const formData = new FormData();
+    formData.append("image", file);
+    try {
+        const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+            method: "POST",
+            body: formData
+        });
+        const result = await response.json();
+        return result.data.url;
+    } catch (error) {
+        console.error("ImgBB Error:", error);
+        return null;
+    }
+}
+
 // UI Helpers
 window.showSection = (id) => {
     document.querySelectorAll('.admin-section').forEach(el => el.classList.add('hidden'));
@@ -89,9 +106,8 @@ document.getElementById('form-create-tourney').addEventListener('submit', async 
 
     try {
         const file = document.getElementById('ct-banner').files[0];
-        const storageRef = ref(storage, `banners/${Date.now()}_${file.name}`);
-        await uploadBytes(storageRef, file);
-        const url = await getDownloadURL(storageRef);
+        const url = await uploadToImgBB(file);
+        if(!url) throw new Error("Banner upload failed!");
 
         await addDoc(collection(db, "tournaments"), {
             title: document.getElementById('ct-title').value,
@@ -309,16 +325,21 @@ function initDeposits() {
             const d = docSnap.data();
             const id = docSnap.id;
             list.innerHTML += `
-                <tr class="hover:bg-slate-800/50">
-                    <td class="p-4 text-white">${d.username || d.userId}</td>
+                            <tr class="hover:bg-slate-800/50">
+                    <td class="p-4 text-white">${d.username || 'User'}</td>
                     <td class="p-4 font-bold text-green-400">₹${d.amount}</td>
                     <td class="p-4 font-mono text-xs">${d.utr}</td>
-                    <td class="p-4"><a href="${d.screenshot}" target="_blank" class="text-blue-400 underline text-xs">View Image</a></td>
+                    <td class="p-4">
+                        <a href="${d.screenshot}" target="_blank" class="text-blue-400 underline text-xs">View Image</a>
+                    </td>
                     <td class="p-4 flex gap-2">
                         <button onclick="handleDeposit('${id}', '${d.userId}', ${d.amount}, 'approved')" class="bg-green-600 px-3 py-1 rounded text-white text-xs font-bold">Approve</button>
                         <button onclick="handleDeposit('${id}', '${d.userId}', ${d.amount}, 'rejected')" class="bg-red-600 px-3 py-1 rounded text-white text-xs font-bold">Reject</button>
                     </td>
                 </tr>
+            `;
+
+
             `;
         });
     });
@@ -362,7 +383,7 @@ function initWithdraws() {
             const id = docSnap.id;
             list.innerHTML += `
                 <tr class="hover:bg-slate-800/50">
-                    <td class="p-4 text-white">${w.username || w.userId}</td>
+                    <td class="p-4 text-white">${w.username || 'User'}</td>
                     <td class="p-4 font-bold text-orange-400">₹${w.amount}</td>
                     <td class="p-4 font-mono text-xs">${w.upi}</td>
                     <td class="p-4 flex gap-2">
