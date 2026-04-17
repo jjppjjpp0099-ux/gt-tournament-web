@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GT Tournament</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f172a">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-slate-900 text-white font-sans antialiased overflow-hidden selection:bg-blue-500 selection:text-white">
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-4 right-4 z-[100] flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Maintenance Overlay -->
+    <div id="maintenance-overlay" class="fixed inset-0 bg-slate-900 z-[200] hidden flex-col items-center justify-center text-center p-6">
+        <i class="fas fa-tools text-6xl text-blue-500 mb-4"></i>
+        <h1 class="text-3xl font-bold mb-2">Under Maintenance</h1>
+        <p class="text-slate-400">We are currently upgrading our systems. Please check back later.</p>
+    </div>
+
+    <!-- Banned Overlay -->
+    <div id="banned-overlay" class="fixed inset-0 bg-slate-900 z-[200] hidden flex-col items-center justify-center text-center p-6">
+        <i class="fas fa-ban text-6xl text-red-500 mb-4"></i>
+        <h1 class="text-3xl font-bold mb-2">Account Suspended</h1>
+        <p class="text-slate-400">Your account has been banned due to policy violations.</p>
+    </div>
+
+    <!-- Broadcast Modal -->
+    <div id="broadcast-modal" class="fixed inset-0 bg-black/80 z-[150] hidden items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-slate-800 rounded-2xl p-6 w-full max-w-sm border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.5)] transform transition-all scale-95 opacity-0" id="broadcast-content">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-blue-400"><i class="fas fa-bullhorn mr-2"></i>Announcement</h3>
+                <button onclick="closeBroadcast()" class="text-slate-400 hover:text-white"><i class="fas fa-times"></i></button>
+            </div>
+            <p id="broadcast-message" class="text-slate-200 mb-6"></p>
+            <button onclick="closeBroadcast()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg transition">Got it</button>
+        </div>
+    </div>
+
+    <!-- Auth Section -->
+    <div id="auth-section" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div class="w-full max-w-md bg-slate-800 p-8 rounded-2xl shadow-2xl border border-slate-700">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 tracking-wider">GT ESPORTS</h1>
+                <p class="text-slate-400 mt-2 text-sm">Compete. Win. Earn.</p>
+            </div>
+
+            <!-- Login Form -->
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1">Email</label>
+                    <input type="email" id="login-email" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1">Password</label>
+                    <input type="password" id="login-password" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition">
+                </div>
+                <button type="submit" id="btn-login" class="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold py-3 rounded-lg shadow-lg shadow-blue-500/30 transition flex justify-center items-center">
+                    <span>Login</span>
+                </button>
+                <p class="text-center text-slate-400 text-sm mt-4">Don't have an account? <a href="#" onclick="toggleAuth('register')" class="text-blue-400 hover:underline">Sign up</a></p>
+            </form>
+
+            <!-- Register Form -->
+            <form id="register-form" class="space-y-4 hidden">
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1">Username</label>
+                    <input type="text" id="reg-username" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1">Email</label>
+                    <input type="email" id="reg-email" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1">Password</label>
+                    <input type="password" id="reg-password" required minlength="6" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition">
+                </div>
+                <button type="submit" id="btn-register" class="w-full bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white font-bold py-3 rounded-lg shadow-lg shadow-purple-500/30 transition flex justify-center items-center">
+                    <span>Create Account</span>
+                </button>
+                <p class="text-center text-slate-400 text-sm mt-4">Already have an account? <a href="#" onclick="toggleAuth('login')" class="text-blue-400 hover:underline">Login</a></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="main-app" class="hidden h-screen flex flex-col bg-slate-900">
+        
+        <!-- Header -->
+        <header class="bg-slate-800 border-b border-slate-700 p-4 sticky top-0 z-40">
+            <div class="flex justify-between items-center max-w-4xl mx-auto">
+                <h1 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">GT</h1>
+                <div class="flex items-center gap-4">
+                    <div class="bg-slate-900 px-3 py-1.5 rounded-full border border-slate-700 flex items-center gap-2 cursor-pointer hover:border-blue-500 transition" onclick="switchTab('wallet')">
+                        <i class="fas fa-wallet text-blue-400"></i>
+                        <span id="header-balance" class="font-bold">₹0</span>
+                    </div>
+                    <button id="btn-logout" class="text-slate-400 hover:text-red-400 transition"><i class="fas fa-sign-out-alt text-xl"></i></button>
+                </div>
+            </div>
+            <!-- Marquee -->
+            <div class="mt-2 overflow-hidden bg-slate-900/50 rounded text-xs py-1 px-2 text-blue-300 border border-blue-900/30">
+                <marquee id="app-marquee" scrollamount="4">Welcome to GT Esports!</marquee>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <main class="flex-1 overflow-y-auto pb-20 custom-scrollbar relative">
+            <div class="max-w-4xl mx-auto p-4 h-full">
+                
+                <!-- Tournaments Tab -->
+                <div id="tab-tournaments" class="tab-content block">
+                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i class="fas fa-gamepad text-blue-500"></i> Upcoming Matches</h2>
+                    <div id="tournaments-list" class="space-y-4 pb-4">
+                        <!-- Injected via JS -->
+                    </div>
+                </div>
+
+                <!-- Wallet Tab -->
+                <div id="tab-wallet" class="tab-content hidden">
+                    <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700 mb-6 shadow-lg">
+                        <p class="text-slate-400 text-sm mb-1">Available Balance</p>
+                        <h2 class="text-4xl font-black text-white mb-4" id="wallet-available">₹0</h2>
+                        <div class="flex justify-between items-center border-t border-slate-700 pt-4 mb-6">
+                            <span class="text-slate-400">Locked (In Withdraw)</span>
+                            <span class="font-bold text-orange-400" id="wallet-locked">₹0</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <button onclick="openModal('deposit-modal')" class="bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-xl transition flex items-center justify-center gap-2"><i class="fas fa-plus"></i> Deposit</button>
+                            <button onclick="openModal('withdraw-modal')" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition flex items-center justify-center gap-2"><i class="fas fa-arrow-down"></i> Withdraw</button>
+                        </div>
+                    </div>
+                    <h3 class="text-lg font-bold mb-3">Recent Transactions</h3>
+                    <div id="transactions-list" class="space-y-2 bg-slate-800 rounded-xl p-2 border border-slate-700">
+                        <!-- Injected via JS -->
+                    </div>
+                </div>
+
+                <!-- Chat Tab -->
+                <div id="tab-chat" class="tab-content hidden h-full flex flex-col">
+                    <div class="bg-slate-800 rounded-t-xl p-3 border-b border-slate-700 flex justify-between items-center">
+                        <h2 class="font-bold"><i class="fas fa-comments text-blue-500 mr-2"></i>Global Chat</h2>
+                    </div>
+                    <div id="chat-messages" class="flex-1 bg-slate-900/50 p-4 overflow-y-auto space-y-3 custom-scrollbar border-x border-slate-700">
+                        <!-- Injected via JS -->
+                    </div>
+                    <form id="chat-form" class="bg-slate-800 p-3 rounded-b-xl border border-slate-700 flex gap-2">
+                        <input type="text" id="chat-input" required placeholder="Type a message..." class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500" autocomplete="off">
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-lg transition"><i class="fas fa-paper-plane"></i></button>
+                    </form>
+                </div>
+
+                <!-- Profile Tab -->
+                <div id="tab-profile" class="tab-content hidden">
+                    <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700 text-center">
+                        <div class="w-20 h-20 bg-slate-700 rounded-full mx-auto flex items-center justify-center text-3xl font-bold text-blue-400 mb-3" id="profile-avatar">U</div>
+                        <h2 class="text-2xl font-bold flex items-center justify-center gap-2">
+                            <span id="profile-username">User</span>
+                            <i id="profile-verified" class="fas fa-check-circle text-blue-500 hidden text-sm" title="Verified"></i>
+                        </h2>
+                        <p class="text-slate-400 mb-6" id="profile-email">email@example.com</p>
+                        
+                        <div class="grid grid-cols-2 gap-4 text-left border-t border-slate-700 pt-6">
+                            <div class="bg-slate-900 p-4 rounded-xl border border-slate-700">
+                                <p class="text-slate-400 text-xs">Joined Matches</p>
+                                <p class="text-xl font-bold" id="profile-matches">0</p>
+                            </div>
+                            <div class="bg-slate-900 p-4 rounded-xl border border-slate-700">
+                                <p class="text-slate-400 text-xs">Total Earnings</p>
+                                <p class="text-xl font-bold text-green-400" id="profile-earnings">₹0</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bg-slate-800 border-t border-slate-700 fixed bottom-0 w-full z-40 pb-safe">
+            <div class="flex justify-around items-center max-w-4xl mx-auto p-2">
+                <button onclick="switchTab('tournaments')" class="nav-btn active flex flex-col items-center p-2 text-slate-400 hover:text-blue-400 w-16 transition" data-target="tournaments">
+                    <i class="fas fa-gamepad text-xl mb-1"></i>
+                    <span class="text-[10px]">Play</span>
+                </button>
+                <button onclick="switchTab('wallet')" class="nav-btn flex flex-col items-center p-2 text-slate-400 hover:text-blue-400 w-16 transition" data-target="wallet">
+                    <i class="fas fa-wallet text-xl mb-1"></i>
+                    <span class="text-[10px]">Wallet</span>
+                </button>
+                <button onclick="switchTab('chat')" class="nav-btn flex flex-col items-center p-2 text-slate-400 hover:text-blue-400 w-16 transition" data-target="chat">
+                    <i class="fas fa-comments text-xl mb-1"></i>
+                    <span class="text-[10px]">Chat</span>
+                </button>
+                <button onclick="switchTab('profile')" class="nav-btn flex flex-col items-center p-2 text-slate-400 hover:text-blue-400 w-16 transition" data-target="profile">
+                    <i class="fas fa-user text-xl mb-1"></i>
+                    <span class="text-[10px]">Profile</span>
+                </button>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Modals -->
+    
+    <!-- Deposit Modal -->
+    <div id="deposit-modal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-end sm:items-center justify-center sm:p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-slate-800 w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl p-6 border border-slate-700 transform translate-y-full sm:translate-y-0 transition-transform duration-300 h-[85vh] sm:h-auto overflow-y-auto custom-scrollbar">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold">Add Funds</h3>
+                <button onclick="closeModal('deposit-modal')" class="text-slate-400 hover:text-white"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="bg-slate-900 rounded-xl p-4 mb-6 text-center border border-slate-700">
+                <p class="text-sm text-slate-400 mb-2">Scan & Pay via any UPI App</p>
+                <img id="dep-qr" src="" alt="QR Code" class="w-48 h-48 mx-auto rounded-lg mb-3 object-contain bg-white p-2">
+                <p class="font-mono text-blue-400 select-all" id="dep-upi">loading...</p>
+                <p class="text-xs text-slate-500 mt-2">Min Deposit: ₹<span id="dep-min">10</span></p>
+            </div>
+
+            <form id="deposit-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1">Amount Sent (₹)</label>
+                    <input type="number" id="dep-amount" required min="10" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1">12-Digit UTR / Ref No.</label>
+                    <input type="text" id="dep-utr" required minlength="12" maxlength="12" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1">Payment Screenshot</label>
+                    <input type="file" id="dep-screenshot" required accept="image/*" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500">
+                </div>
+                <button type="submit" id="btn-submit-deposit" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-lg transition mt-4 flex justify-center items-center">Submit Request</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Withdraw Modal -->
+    <div id="withdraw-modal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-end sm:items-center justify-center sm:p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-slate-800 w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl p-6 border border-slate-700 transform translate-y-full sm:translate-y-0 transition-transform duration-300">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold">Withdraw Funds</h3>
+                <button onclick="closeModal('withdraw-modal')" class="text-slate-400 hover:text-white"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="bg-slate-900 rounded-xl p-4 mb-6 border border-slate-700 flex justify-between items-center">
+                <span class="text-slate-400">Available to Withdraw</span>
+                <span class="text-xl font-bold text-green-400" id="with-available">₹0</span>
+            </div>
+
+            <form id="withdraw-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1">Amount (₹)</label>
+                    <input type="number" id="with-amount" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500">
+                    <p class="text-xs text-slate-500 mt-1">Min Withdraw: ₹<span id="with-min">50</span></p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1">Your UPI ID / Number</label>
+                    <input type="text" id="with-upi" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500">
+                </div>
+                <button type="submit" id="btn-submit-withdraw" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg transition mt-4 flex justify-center items-center">Request Withdrawal</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tournament Details Modal -->
+    <div id="tourney-modal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-end sm:items-center justify-center sm:p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-slate-800 w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl p-0 border border-slate-700 transform translate-y-full sm:translate-y-0 transition-transform duration-300 overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="relative h-48 bg-slate-700 shrink-0">
+                <img id="tm-banner" src="" class="w-full h-full object-cover opacity-50">
+                <button onclick="closeModal('tourney-modal')" class="absolute top-4 right-4 bg-black/50 w-8 h-8 rounded-full text-white hover:bg-black/80 flex items-center justify-center z-10"><i class="fas fa-times"></i></button>
+                <div class="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-slate-800 to-transparent">
+                    <h3 id="tm-title" class="text-2xl font-bold text-white shadow-sm">Tournament Title</h3>
+                    <p id="tm-time" class="text-blue-300 text-sm"><i class="far fa-clock mr-1"></i> Time</p>
+                </div>
+            </div>
+            
+            <div class="p-6 overflow-y-auto custom-scrollbar flex-1">
+                <div class="grid grid-cols-3 gap-2 mb-6 text-center">
+                    <div class="bg-slate-900 p-2 rounded-lg border border-slate-700">
+                        <p class="text-slate-400 text-xs">Entry Fee</p>
+                        <p id="tm-fee" class="font-bold text-orange-400">₹0</p>
+                    </div>
+                    <div class="bg-slate-900 p-2 rounded-lg border border-slate-700">
+                        <p class="text-slate-400 text-xs">Prize Pool</p>
+                        <p id="tm-pool" class="font-bold text-green-400">₹0</p>
+                    </div>
+                    <div class="bg-slate-900 p-2 rounded-lg border border-slate-700">
+                        <p class="text-slate-400 text-xs">Per Kill</p>
+                        <p id="tm-kill" class="font-bold text-blue-400">₹0</p>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="text-slate-400">Spots Filled</span>
+                        <span id="tm-spots-text" class="font-bold">0/0</span>
+                    </div>
+                    <div class="w-full bg-slate-900 rounded-full h-2.5 border border-slate-700">
+                        <div id="tm-progress" class="bg-blue-500 h-2.5 rounded-full" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div id="tm-room-details" class="hidden bg-green-900/30 border border-green-500/50 p-4 rounded-xl mb-6">
+                    <h4 class="text-green-400 font-bold mb-2 flex items-center"><i class="fas fa-key mr-2"></i> Room Details</h4>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-slate-300 text-sm">Room ID:</span>
+                        <span id="tm-room-id" class="font-mono bg-slate-900 px-2 py-1 rounded text-white select-all">Waiting...</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-300 text-sm">Password:</span>
+                        <span id="tm-room-pass" class="font-mono bg-slate-900 px-2 py-1 rounded text-white select-all">Waiting...</span>
+                    </div>
+                </div>
+
+                <button id="btn-join-tourney" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition flex justify-center items-center shadow-lg shadow-blue-500/20">
+                    Join Match
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="js/firebase-config.js"></script>
+    <script type="module" src="js/auth.js"></script>
+    <script type="module" src="js/app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW Reg failed:', err));
+            });
+        }
+    </script>
+</body>
+</html>
