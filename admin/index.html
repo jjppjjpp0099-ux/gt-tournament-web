@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GT Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="bg-slate-900 text-slate-200 h-screen flex overflow-hidden">
+
+    <!-- Login Overlay -->
+    <div id="admin-login" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center">
+        <div class="bg-slate-800 p-8 rounded-xl shadow-2xl border border-slate-700 w-96">
+            <h2 class="text-2xl font-bold text-white mb-6 text-center">Admin Login</h2>
+            <form id="admin-login-form" class="space-y-4">
+                <input type="email" id="admin-email" required placeholder="Email" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+                <input type="password" id="admin-password" required placeholder="Password" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 rounded-lg transition">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-slate-800 border-r border-slate-700 flex flex-col h-full shrink-0">
+        <div class="p-6 border-b border-slate-700">
+            <h1 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">GT ADMIN</h1>
+        </div>
+        <nav class="flex-1 overflow-y-auto py-4 custom-scrollbar">
+            <ul class="space-y-1 px-3">
+                <li><a href="#" onclick="showSection('dashboard')" class="sidebar-link active flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-700 hover:text-white transition" data-target="dashboard"><i class="fas fa-chart-line w-5"></i> Dashboard</a></li>
+                <li><a href="#" onclick="showSection('tournaments')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-700 hover:text-white transition" data-target="tournaments"><i class="fas fa-gamepad w-5"></i> Tournaments</a></li>
+                <li><a href="#" onclick="showSection('users')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-700 hover:text-white transition" data-target="users"><i class="fas fa-users w-5"></i> Users</a></li>
+                <li><a href="#" onclick="showSection('deposits')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-700 hover:text-white transition" data-target="deposits"><i class="fas fa-arrow-down w-5"></i> Deposits</a></li>
+                <li><a href="#" onclick="showSection('withdraws')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-700 hover:text-white transition" data-target="withdraws"><i class="fas fa-arrow-up w-5"></i> Withdrawals</a></li>
+                <li><a href="#" onclick="showSection('settings')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-700 hover:text-white transition" data-target="settings"><i class="fas fa-cog w-5"></i> Settings</a></li>
+                <li><a href="#" onclick="showSection('broadcast')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-700 hover:text-white transition" data-target="broadcast"><i class="fas fa-bullhorn w-5"></i> Broadcast</a></li>
+            </ul>
+        </nav>
+        <div class="p-4 border-t border-slate-700">
+            <button id="btn-admin-logout" class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg transition"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-full bg-slate-900 overflow-hidden relative">
+        <!-- Toast -->
+        <div id="admin-toast" class="absolute top-4 right-4 z-50 hidden px-4 py-3 rounded-lg shadow-lg text-white font-medium transition-opacity"></div>
+
+        <header class="bg-slate-800 border-b border-slate-700 p-4 flex justify-between items-center shrink-0">
+            <h2 id="section-title" class="text-xl font-bold text-white capitalize">Dashboard</h2>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-6 custom-scrollbar">
+            
+            <!-- Dashboard -->
+            <section id="sec-dashboard" class="admin-section block space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="bg-slate-800 p-6 rounded-xl border border-slate-700">
+                        <h3 class="text-slate-400 text-sm font-medium">Total Users</h3>
+                        <p class="text-3xl font-bold text-white mt-2" id="stat-users">0</p>
+                    </div>
+                    <div class="bg-slate-800 p-6 rounded-xl border border-slate-700">
+                        <h3 class="text-slate-400 text-sm font-medium">Pending Deposits</h3>
+                        <p class="text-3xl font-bold text-green-400 mt-2" id="stat-dep">0</p>
+                    </div>
+                    <div class="bg-slate-800 p-6 rounded-xl border border-slate-700">
+                        <h3 class="text-slate-400 text-sm font-medium">Pending Withdraws</h3>
+                        <p class="text-3xl font-bold text-orange-400 mt-2" id="stat-with">0</p>
+                    </div>
+                    <div class="bg-slate-800 p-6 rounded-xl border border-slate-700">
+                        <h3 class="text-slate-400 text-sm font-medium">Active Tournaments</h3>
+                        <p class="text-3xl font-bold text-blue-400 mt-2" id="stat-tour">0</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tournaments -->
+            <section id="sec-tournaments" class="admin-section hidden space-y-6">
+                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700">
+                    <h3 class="text-lg font-bold text-white mb-4">Create Tournament</h3>
+                    <form id="form-create-tourney" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <input type="text" id="ct-title" required placeholder="Title" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white">
+                        <input type="number" id="ct-fee" required placeholder="Entry Fee" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white">
+                        <input type="number" id="ct-pool" required placeholder="Prize Pool" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white">
+                        <input type="number" id="ct-kill" required placeholder="Per Kill Reward" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white">
+                        <input type="number" id="ct-slots" required placeholder="Total Slots" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white">
+                        <input type="datetime-local" id="ct-date" required class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white [color-scheme:dark]">
+                        <input type="file" id="ct-banner" required accept="image/*" class="bg-slate-900 border border-slate-700 rounded px-3 py-1.5 text-white text-sm">
+                        <button type="submit" id="btn-create-tourney" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 rounded transition md:col-span-2">Create</button>
+                    </form>
+                </div>
+                
+                <div class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-900 text-slate-400">
+                            <tr>
+                                <th class="p-4">Title</th>
+                                <th class="p-4">Date</th>
+                                <th class="p-4">Slots</th>
+                                <th class="p-4">Room ID/Pass</th>
+                                <th class="p-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-tourney-list" class="divide-y divide-slate-700"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Users -->
+            <section id="sec-users" class="admin-section hidden space-y-6">
+                <div class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
+                    <div class="p-4 border-b border-slate-700 flex justify-between items-center">
+                        <input type="text" id="search-user" placeholder="Search by email..." class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white w-64">
+                    </div>
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-900 text-slate-400">
+                            <tr>
+                                <th class="p-4">User</th>
+                                <th class="p-4">Available Bal</th>
+                                <th class="p-4">Locked Bal</th>
+                                <th class="p-4">Status</th>
+                                <th class="p-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-user-list" class="divide-y divide-slate-700"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Deposits -->
+            <section id="sec-deposits" class="admin-section hidden space-y-6">
+                <div class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-900 text-slate-400">
+                            <tr>
+                                <th class="p-4">User</th>
+                                <th class="p-4">Amount</th>
+                                <th class="p-4">UTR</th>
+                                <th class="p-4">Screenshot</th>
+                                <th class="p-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-dep-list" class="divide-y divide-slate-700"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Withdraws -->
+            <section id="sec-withdraws" class="admin-section hidden space-y-6">
+                <div class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-900 text-slate-400">
+                            <tr>
+                                <th class="p-4">User</th>
+                                <th class="p-4">Amount</th>
+                                <th class="p-4">UPI ID</th>
+                                <th class="p-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-with-list" class="divide-y divide-slate-700"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Settings -->
+            <section id="sec-settings" class="admin-section hidden space-y-6">
+                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 max-w-2xl">
+                    <form id="form-settings" class="space-y-4">
+                        <div>
+                            <label class="block text-sm text-slate-400 mb-1">Marquee Text</label>
+                            <input type="text" id="set-marquee" class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm text-slate-400 mb-1">Min Deposit (₹)</label>
+                                <input type="number" id="set-min-dep" class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white">
+                            </div>
+                            <div>
+                                <label class="block text-sm text-slate-400 mb-1">Min Withdraw (₹)</label>
+                                <input type="number" id="set-min-with" class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm text-slate-400 mb-1">Payment UPI ID</label>
+                            <input type="text" id="set-upi" class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-slate-400 mb-1">QR Code Image URL</label>
+                            <input type="url" id="set-qr" class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white">
+                        </div>
+                        <div class="flex items-center gap-2 mt-4">
+                            <input type="checkbox" id="set-maintenance" class="w-4 h-4">
+                            <label for="set-maintenance" class="text-red-400 font-bold">Enable Maintenance Mode</label>
+                        </div>
+                        <button type="submit" id="btn-save-settings" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-6 rounded transition mt-4">Save Settings</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Broadcast -->
+            <section id="sec-broadcast" class="admin-section hidden space-y-6">
+                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 max-w-xl">
+                    <h3 class="text-lg font-bold text-white mb-4">Send Global Popup Alert</h3>
+                    <form id="form-broadcast" class="space-y-4">
+                        <textarea id="bc-message" required rows="4" placeholder="Type announcement here..." class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white focus:outline-none focus:border-blue-500"></textarea>
+                        <button type="submit" id="btn-send-bc" class="bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-6 rounded transition">Send Broadcast</button>
+                    </form>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Modals -->
+    <!-- Room Details Modal -->
+    <div id="modal-room" class="fixed inset-0 bg-black/80 z-50 hidden items-center justify-center p-4">
+        <div class="bg-slate-800 p-6 rounded-xl w-96 border border-slate-700">
+            <h3 class="text-xl font-bold mb-4">Update Room Details</h3>
+            <input type="hidden" id="room-tid">
+            <input type="text" id="room-id" placeholder="Room ID" class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white mb-3">
+            <input type="text" id="room-pass" placeholder="Password" class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white mb-4">
+            <div class="flex justify-end gap-2">
+                <button onclick="document.getElementById('modal-room').classList.add('hidden')" class="px-4 py-2 bg-slate-700 rounded">Cancel</button>
+                <button onclick="saveRoomDetails()" class="px-4 py-2 bg-blue-600 rounded">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Modal -->
+    <div id="modal-result" class="fixed inset-0 bg-black/80 z-50 hidden items-center justify-center p-4">
+        <div class="bg-slate-800 p-6 rounded-xl w-full max-w-2xl border border-slate-700 max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center mb-4 shrink-0">
+                <h3 class="text-xl font-bold">Submit Results</h3>
+                <button onclick="document.getElementById('modal-result').classList.add('hidden')" class="text-slate-400 hover:text-white"><i class="fas fa-times"></i></button>
+            </div>
+            <input type="hidden" id="res-tid">
+            <input type="hidden" id="res-kill-reward">
+            <div class="overflow-y-auto custom-scrollbar flex-1 mb-4">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-900 text-slate-400">
+                        <tr>
+                            <th class="p-2">User ID</th>
+                            <th class="p-2 w-24">Kills</th>
+                            <th class="p-2 w-32">Prize Share (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="res-user-list" class="divide-y divide-slate-700"></tbody>
+                </table>
+            </div>
+            <button onclick="submitResults()" id="btn-submit-res" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded shrink-0">Process Winnings</button>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div id="modal-edit-user" class="fixed inset-0 bg-black/80 z-50 hidden items-center justify-center p-4">
+        <div class="bg-slate-800 p-6 rounded-xl w-96 border border-slate-700">
+            <h3 class="text-xl font-bold mb-4">Edit User Balances</h3>
+            <input type="hidden" id="eu-uid">
+            <label class="block text-sm text-slate-400 mb-1">Available Balance</label>
+            <input type="number" id="eu-avail" class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white mb-3">
+            <label class="block text-sm text-slate-400 mb-1">Locked Balance</label>
+            <input type="number" id="eu-locked" class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white mb-4">
+            <div class="flex justify-end gap-2">
+                <button onclick="document.getElementById('modal-edit-user').classList.add('hidden')" class="px-4 py-2 bg-slate-700 rounded">Cancel</button>
+                <button onclick="saveUserEdit()" class="px-4 py-2 bg-blue-600 rounded">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="../js/firebase-config.js"></script>
+    <script type="module" src="js/admin.js"></script>
+</body>
+</html>
